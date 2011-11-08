@@ -1,5 +1,6 @@
 package dk.solsort.yolan;
 import java.io.*;
+import java.util.Stack;
 
 class Token {
     public static final int EOF = 0;
@@ -33,10 +34,76 @@ class Token {
     }
 }
 
+class Ast {
+    static Ast createCall(Ast obj, String id, Stack args) {
+        if(id == null && obj == null && args.size() == 0) {
+            return null;
+        }
+        if(id == null && obj == null && args.size() == 1) {
+            return (Ast) args.get(0);
+        }
+        if(obj == null) {
+            obj = new Special("Context");
+        }
+        return new Call(obj, id, args);
+    }
+};
+
+class Special extends Ast {
+    public String val;
+    public Special(String s) {
+        val = s;
+    }
+    public String toString() { return "[" + String.valueOf(val) + "]"; }
+}
+
+class Symb extends Ast {
+    public String val;
+    public Symb(String s) {
+        val = s;
+    }
+    public String toString() { return "[Symb " + String.valueOf(val) + "]"; }
+}
+class Str extends Ast {
+    public String val;
+    public Str(String s) {
+        val = s;
+    }
+    public String toString() { return "[Str " + String.valueOf(val) + "]"; }
+}
+class Num extends Ast {
+    public String val;
+    public Num(String s) {
+        val = s;
+    }
+    public String toString() { return "[Num " + String.valueOf(val) + "]"; }
+}
+class Call extends Ast {
+    public Ast obj;
+    public String id;
+    public Stack args;
+    public Call(Ast obj, String id, Stack args) {
+        this.obj = obj;
+        this.id = id;
+        this.args = args;
+    }
+    public String toString() { return "" + String.valueOf(obj) + "." + String.valueOf(id) + "(" + (args.size() >0 ?String.valueOf(args) : "") + ")"; }
+}
+class Block extends Ast {
+    public Stack stmts;
+    public Block(Stack stmts) {
+        this.stmts = stmts;
+    }
+    public String toString() { return "{" + String.valueOf(stmts) + "}"; }
+}
+
 class Tokeniser {
     String source;
     int pos;
     int c;
+    public boolean done() {
+        return c == -1;
+    }
     void nextc() {
         if(pos >= source.length()) {
             c = -1;
@@ -73,166 +140,73 @@ class Tokeniser {
         return (char) result;
     }
 
-    public Token next() {
-        Token result;
-        while(isWs()) {
-            nextc();
-        }
-        switch(c) {
-            case -1: return Token.eof;
-            case '(': nextc(); return Token.lparen;
-            case ')': nextc(); return Token.rparen;
-            case '{': nextc(); return Token.lcurly;
-            case '}': nextc(); return Token.rcurly;
-            case '\n': nextc(); return Token.eol;
-            case '\'': {
-                StringBuffer sb = new StringBuffer();
-                nextc();
-                while(!isSpecial()) {
-                    sb.append(unescapeAndNext());
-                }
-                return new Token(Token.SYMBOL, sb.toString());
-            }
-            case '"': {
-                StringBuffer sb = new StringBuffer();
-                nextc();
-                while(c != '"' && !isEOF()) {
-                    sb.append(unescapeAndNext());
-                }
-                return new Token(Token.STRING, sb.toString());
-            }
-            case '1': case '2': case '3': case '4': case '5':
-            case '6': case '7': case '8': case '9': case '0': {
-                StringBuffer sb = new StringBuffer();
-                while(!isSpecial()) {
-                    sb.append(unescapeAndNext());
-                }
-                return new Token(Token.NUMBER, sb.toString());
-            }
-            default: {
-                StringBuffer sb = new StringBuffer();
-                while(!isSpecial()) {
-                    sb.append(unescapeAndNext());
-                }
-                return new Token(Token.ID, sb.toString());
-            }
-        }
-
-    }
-}
-
-
-/*
-
-class Parser {
-    Ast obj;
-    String id;
-    Stack args;
-    Parser() {
-        obj = null;
-        id = null;
-        args = new Stack();
-    }
-    void next() {
-        obj = new Ast(obj, id, args);
-    }
-    void stringLiteral(s) {
-    }
-}
-
-id:
-    next();
-    id = id;
-
-literal:
-    args.push(literal)
-
-
-
-next() {
-    obj = Fn(obj, id, args);
-}
-
-class Parser {
-    Tokeniser tokeniser;
-    Token t;
-    public Parser(Tokeniser tokeniser) {
-        this.tokeniser = tokeniser;
-        t = Tokeniser.next();
-    }
-    
-    Ast next() {
-        Stack stack;
-        Ast prev = null;
-        Stack args = null;
-        Ast node;
-        switch(t.type) {
-            case Token.SYMBOL:
-            case Token.NUMBER:
-            case Token.STRING:
-                if(args == null && prev == null) {
-                    prev = t;
-                } else if(args != null && prev != null) {
-                    args.push(t);
-                } else {
-                    throw Error("Unexpected literal: " + t.toString());
-                }
-            break;
-            case Token.LCURLY:
-                stack = new Stack();
-                t = Tokeniser.next();
-                while(t.type != Token.RCURLY && t.type !== Token.EOF) {
-                    node = next();
-                    if(node != null) {
-                        stack.push(node);
+    public Ast next() {
+        Ast obj = null;
+        String id = null;
+        Stack args = new Stack();
+        Stack block;
+        for(;;) {
+            while(isWs()) { nextc(); }
+            switch(c) {
+                case '\n': case ')': nextc(); 
+                case -1: case '}': 
+                    return Ast.createCall(obj, id, args);
+                case '(': 
+                    nextc(); 
+                    args.push(next());
+                    break;
+                case '{': nextc(); 
+                    block = new Stack();
+                    while(isWs()) { nextc(); }
+                    while(c != -1 && c != '}') {
+                        Object o = next();
+                        if(o != null) {
+                            block.push(o);
+                        }
                     }
+                    nextc();
+                    args.push(new Block(block));
+                break;
+                case '\'': {
+                    StringBuffer sb = new StringBuffer();
+                    nextc();
+                    while(!isSpecial()) {
+                        sb.append(unescapeAndNext());
+                    }
+                    args.push(new Symb(sb.toString()));
                 }
-                return 
-
-                
+                break;
+                case '"': {
+                    StringBuffer sb = new StringBuffer();
+                    nextc();
+                    while(c != '"' && !isEOF()) {
+                        sb.append(unescapeAndNext());
+                    }
+                    args.push(new Str(sb.toString()));
+                }
+                break;
+                case '1': case '2': case '3': case '4': case '5':
+                case '6': case '7': case '8': case '9': case '0': {
+                    StringBuffer sb = new StringBuffer();
+                    do {
+                        sb.append(unescapeAndNext());
+                    } while(!isSpecial());
+                    args.push(new Num(sb.toString()));
+                }
+                break;
+                default: {
+                    StringBuffer sb = new StringBuffer();
+                    do {
+                        sb.append(unescapeAndNext());
+                    } while(!isSpecial());
+                    obj = Ast.createCall(obj, id, args);
+                    id = sb.toString();
+                    args = new Stack();
+                }
+            }
         }
     }
-
-    {
-    Stack stack = new Stack;
-    Stack codeblock = new Stack;
-    boolean inFn = false;
-    switch(t.type) {
-        case Token.EOF:
-        break;
-        case Token.LCURLY:
-            codeBlock = new Stack();
-        break;
-        case Token.RCURLY:
-            restore state;
-            args.push(new CodeBlock(code));
-            
-        case Token.SYMBOL:
-        case Token.NUMBER:
-        case Token.STRING:
-            args.push(Token);
-        break;
-        case Token.ID:
-            if(id != null) {
-                prev = new MethodCall(prev, id, args);
-            }
-            id = Token;
-            args = new Stack();
-        break;
-        case Token.EOL:
-            if(id != null) {
-                prev = new MethodCall(prev, id, args);
-            }
-            id = null;
-        break;
-        case Token.LPAREN:
-        break;
-        case Token.RPAREN:
-        break;
-    }
-    }
 }
-*/
 
 class Compiler {
     String destinationPackage;
@@ -244,9 +218,10 @@ class Compiler {
 
     Object[] parse(String s) {
         Tokeniser tokeniser = new Tokeniser(s);
-        Token t;
-        while((t = tokeniser.next()) != Token.eof) {
-            System.out.println(t.toString());
+        Ast t;
+        while(!tokeniser.done()) {
+            t = tokeniser.next();
+            System.out.println(String.valueOf(t));
         }
         return null;
     }

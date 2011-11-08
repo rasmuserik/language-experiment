@@ -1,4 +1,6 @@
-Any : Interface {
+interface 'Any {
+    int 'f (int int)
+
     'as : (-> CastFn)
     'case : (Fn -> Any)
     'then : (Fn -> Any)
@@ -9,6 +11,14 @@ Any : Interface {
     'is : (Any -> Bool)
     'toString : (-> String)
 } 
+
+Int 'x
+2 * (3 + 4) -> x
+
+interface {
+
+} -> Any
+
 Any extends SomeInterface
 
 Quux : Interface {
@@ -23,5 +33,28 @@ Foo implements Blah
 Foo {
     dist := {
         x : (Num argument) * (x) + (y : (Num argument) * (y)) return
+    }
+}
+List : Interface {
+    'head : (-> Any)
+    'tail : (-> List)
+    ', : (Any -> List)
+}
+
+class 'List {
+    'car : Any
+    'cdr : List
+    'head := {
+        car return
+    }
+    'tail := {
+        cdr return
+    }
+    'List := {
+        this car := (arg 0)
+        this cdr := (arg 1 as List)
+    }
+    ', := {
+        new List (arg 0) (this)
     }
 }

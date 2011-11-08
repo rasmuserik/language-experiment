@@ -2,38 +2,6 @@ package dk.solsort.yolan;
 import java.io.*;
 import java.util.Stack;
 
-class Token {
-    public static final int EOF = 0;
-    public static final int RCURLY = 1;
-    public static final int LCURLY = 2;
-    public static final int SYMBOL = 3;
-    public static final int NUMBER = 4;
-    public static final int STRING = 5;
-    public static final int ID = 6;
-    public static final int EOL = 7;
-    public static final int LPAREN = 8;
-    public static final int RPAREN = 9;
-    public static final Token eof = new Token(EOF, "[EOF]");
-    public static final Token rcurly = new Token(RCURLY, "}");
-    public static final Token lcurly = new Token(LCURLY, "{");
-    public static final Token eol = new Token(EOL, "[EOL]");
-    public static final Token lparen = new Token(LPAREN, "(");
-    public static final Token rparen = new Token(RPAREN, ")");
-
-    public int type;
-    public String val;
-    public Token(int type) {
-        this.type = type;
-    }
-    public Token(int type, String val) {
-        this.type = type;
-        this.val = val;
-    }
-    public String toString() {
-        return "[" + type + ": " + val + "]";
-    }
-}
-
 class Ast {
     static Ast createCall(Ast obj, String id, Stack args) {
         if(id == null && obj == null && args.size() == 0) {
@@ -64,6 +32,7 @@ class Symb extends Ast {
     }
     public String toString() { return "[Symb " + String.valueOf(val) + "]"; }
 }
+
 class Str extends Ast {
     public String val;
     public Str(String s) {
@@ -71,6 +40,7 @@ class Str extends Ast {
     }
     public String toString() { return "[Str " + String.valueOf(val) + "]"; }
 }
+
 class Num extends Ast {
     public String val;
     public Num(String s) {
@@ -78,6 +48,7 @@ class Num extends Ast {
     }
     public String toString() { return "[Num " + String.valueOf(val) + "]"; }
 }
+
 class Call extends Ast {
     public Ast obj;
     public String id;
@@ -94,6 +65,7 @@ class Block extends Ast {
     public Block(Stack stmts) {
         this.stmts = stmts;
     }
+
     public String toString() { return "{" + String.valueOf(stmts) + "}"; }
 }
 

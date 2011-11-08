@@ -1,0 +1,27 @@
+Any : Interface {
+    'as : (-> CastFn)
+    'case : (Fn -> Any)
+    'then : (Fn -> Any)
+    'else : (Fn -> Any)
+    'or : (Any -> Any)
+    'and : (Any -> Any)
+    'instanceOf : (Type -> Bool)
+    'is : (Any -> Bool)
+    'toString : (-> String)
+} 
+Any extends SomeInterface
+
+Quux : Interface {
+    somefunc : (Int Int -> Int)
+}
+
+
+Foo : Class implements (Quux Quuux) {
+}
+
+Foo implements Blah
+Foo {
+    dist := {
+        x : (Num argument) * (x) + (y : (Num argument) * (y)) return
+    }
+}

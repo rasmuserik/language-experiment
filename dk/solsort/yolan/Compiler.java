@@ -69,7 +69,7 @@ class Block extends Ast {
     public String toString() { return "{" + String.valueOf(stmts) + "}"; }
 }
 
-class Tokeniser {
+class Parser {
     String source;
     int pos;
     int c;
@@ -96,7 +96,7 @@ class Tokeniser {
         return c == -1;
     }
 
-    public Tokeniser(String source) {
+    public Parser(String source) {
         this.source = source;
         this.pos = 0;
         nextc();
@@ -189,10 +189,10 @@ class Compiler {
 
 
     Object[] parse(String s) {
-        Tokeniser tokeniser = new Tokeniser(s);
+        Parser parser = new Parser(s);
         Ast t;
-        while(!tokeniser.done()) {
-            t = tokeniser.next();
+        while(!parser.done()) {
+            t = parser.next();
             System.out.println(String.valueOf(t));
         }
         return null;

@@ -23,3 +23,9 @@ Mainly inspired by the c-language family, lisp and smalltalk.
 Mainly inspired by JavaScript and Java, which also are the virtual machines it compiles to.
 
 
+# Features
+
+- java-like interfaces/classes
+- true closures / first class functions
+- javascript-like event based programming
+- designed for autocompletion / coding on mobile device

@@ -29,3 +29,4 @@ Mainly inspired by JavaScript and Java, which also are the virtual machines it c
 - true closures / first class functions
 - javascript-like event based programming
 - designed for autocompletion / coding on mobile device
+- type inference

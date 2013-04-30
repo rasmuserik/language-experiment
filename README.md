@@ -1,4 +1,4 @@
-# Yolan - yocto language
+# ![logo](https://solsort.com/_logo.png) Yolan - yocto language
 
 Minimalistic language for easy mobile development, with on device support.
 
